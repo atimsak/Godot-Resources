@@ -1,0 +1,68 @@
+/Player Movement/
+
+/See line 37 for another approach/
+/This first set of player movement code was primarily written by HeartBeast. The constants, Acceleration, Speed, and Friction, are named at the start, as are the two variables, Velocity and Animation. With this code, you will have a protagonist that can move freely around a gameplay area./
+/With both, feel free to change the values in your constants and to change the user interface commands ("ui_left") as well as the names of the Animation player motions./
+
+extends KinematicBody2D
+
+const ACCELERATION = 500
+const MAX_SPEED = 80
+const FRICTION = 500
+
+var velocity = Vector2.ZERO
+
+onready var animationPlayer = $AnimationPlayer
+
+func _physics_process(delta):
+	var input_vector = Vector2.ZERO
+	input_vector.x = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
+	input_vector.y = Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
+	input_vector = input_vector.normalized()
+	
+	if input_vector != Vector2.ZERO:
+		if input_vector.x > 0: 
+			animationPlayer.play("Walk_R")
+		else:
+			animationPlayer.play("Walk_Up")
+		velocity = velocity.move_toward(input_vector * MAX_SPEED, ACCELERATION * delta)
+	else: 
+		animationPlayer.play("Movement-1")
+		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
+		
+	velocity = move_and_slide(velocity)
+
+
+
+
+/These next lines of code were written by BornCG. It was written to work with Animated Sprite and not the Animation Player Node. I have adjusted it to work with the Adnimation Player node./
+
+extends KinematicBody2D
+
+var velocity = Vector2(0,0)
+const SPEED = 180
+const GRAVITY = 35
+const JUMPFORCE = -1100
+
+onready var animationPlayer = $AnimationPlayer
+
+func _physics_process(delta):
+	
+	if Input.is_action_pressed("ui_right"):
+		velocity.x = SPEED
+		$Animationplayer.play("Walk-R")
+	elif Input.is_action_pressed("ui_left"):
+		velocity.x = -SPEED
+		$Animationplayer.play("Walk-L")
+	else:
+		$Animationplayer.play("idle")
+	
+	if not is_on_floor():
+		$AnimationPlayer.play("air")
+	
+	velocity.y = velocity.y + GRAVITY
+	
+	if Input.is_action_just_pressed("jump") and is_on_floor():
+		velocity.y = JUMPFORCE
+		
+	velocity = move_and_slide(velocity,Vector2.UP)
